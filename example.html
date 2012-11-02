@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ko.pager example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <script src="js/jquery-1.8.2.min.js" type="text/javascript"></script>
+    <script src="js/knockout-2.2.0.js" type="text/javascript"></script>
+    <script src="js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="js/ko.pager.js" type="text/javascript"></script>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style>
+        body
+        {
+            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+        }
+    </style>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script type="text/javascript">
+        var ViewModel = function () {
+            var self = this;
+
+            // only for example, used to demonstrate setting the total item count from a service call.
+            self.SetTotalResults = ko.observable();
+
+            // holds the total item count
+            self.TotalResults = ko.observable();
+
+            // actual pager, used to bind to the pager's template
+            // first parameter must be an observable or function which returns the current 'total item count'.
+            // it is wrapped in a ko.computed inside the pager.
+            self.Pager = ko.pager(self.TotalResults);
+
+            // Subscribe to current page changes.
+            self.Pager().CurrentPage.subscribe(function () {
+                self.search();
+            });
+
+            self.search = function () {
+                // simulate a search
+
+                // ie.:
+                /*
+                var maximumRows = self.Pager().PageSize(),
+                    searchText = self.SearchText(),
+                    startIndex = (self.Pager().CurrentPage() - 1) * maximumRows;
+                myService.search(searchText, startIndex, maximumRows)
+                    .done(function(result) { 
+                        // set your own results etc... 
+                        self.TotalResults(result.totalItemCount);
+                    }
+                */
+
+                // setting 'total results' this should be in your result callback
+                var result = {
+                    totalItemCount: self.SetTotalResults() // in this example we grab it from the form.
+                };
+                self.TotalResults(result.totalItemCount);
+            }
+        } // /ViewModel
+
+        $(function () {
+            ko.applyBindings(new ViewModel(), $('body')[0]);
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>ko.pager Example:</h1>
+        <form class="form-horizontal">
+        <h3>Configure pager:</h3>
+        <div class="control-group">
+            <label class="control-label" for="CurrentPage">CurrentPage</label>
+            <div class="controls">
+                <input type="text" id="CurrentPage" data-bind="value: Pager().CurrentPage">
+                <p>
+                    Subscribe to this property to trigger your search function.<br />
+                    It is changed when the user clicks a page.
+                </p>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="PageSize">PageSize</label>
+            <div class="controls">
+                <input type="text" id="PageSize" data-bind="value: Pager().PageSize">
+                <p>
+                    Define page size for correct calculation. Defaults to <strong>10</strong>.
+                </p>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="PageSlide">PageSlide</label>
+            <div class="controls">
+                <input type="text" id="PageSlide" data-bind="value: Pager().PageSlide">
+                <p>
+                    Defines the page slide effect size. Defaults to <strong>2</strong>.
+                </p>
+            </div>
+        </div>
+        <hr />
+        <h3>Search:</h3>
+        <div class="control-group">
+            <label class="control-label" for="TotalItemCount">Total Item Count</label>
+            <div class="controls">
+                <p>
+                    Set this to a number > 0 to show the pager.
+                </p>
+                <input type="text" id="TotalItemCount" data-bind="value: SetTotalResults">
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="button" class="btn" data-bind="click: search">Search</button>
+            </div>
+        </div>
+        <p>
+            In this example, only the pager is shown. No grid or results of any kind. Also the pager's template is using bootstrap to style it a bit.
+        </p>
+        </form>
+        <hr />
+        <!-- ko ifnot:Pager().TotalItemCount() > 0 -->
+        <p>
+            No results found
+        </p>
+        <!-- /ko -->
+        <!-- ko if:Pager().TotalItemCount() > 0 -->
+        <div class="pagination" data-bind="template:{ name: 'tpl-pager', data: Pager }">
+        </div>
+        <!-- /ko -->
+    </div>
+    <!-- /container -->
+
+    <script type="text/html" id="tpl-pager">
+        <div class="pagexofx">
+            <span data-bind="text: FirstItemIndex"></span>
+            -
+        <span data-bind="text: LastItemIndex"></span>
+            van
+        <strong>
+            <span data-bind="text: TotalItemCount"></span>
+        </strong>
+            resultaten
+        </div>
+        <ul>
+            <!-- ko if:CurrentPage() === 1 -->
+            <li class="disabled">
+                <a href="#" class="disabledPage">&laquo;&laquo;</a></li>
+            <!-- /ko -->
+            <!-- ko ifnot:CurrentPage() === 1 -->
+            <li>
+                <a href="#" data-bind="click: function(){ CurrentPage(1); }">&laquo;&laquo;</a></li>
+            <!-- /ko -->
+            <!-- ko if:HasPrevPage -->
+            <li>
+                <a href="#" data-bind="click: function(){ CurrentPage(CurrentPage() - 1); }">&laquo;</a></li>
+            <!-- /ko -->
+            <!-- ko ifnot:HasPrevPage -->
+            <li class="disabled">
+                <a href="#" class="disabledPage">&laquo;</a></li>
+            <!-- /ko -->
+            <!-- ko foreach:Pages -->
+            <!-- ko if:$data === $parent.CurrentPage() -->
+            <li class="active">
+                <span class="currentPage" data-bind="text: $data"></span>
+            </li>
+            <!-- /ko -->
+            <!-- ko if:$data !== $parent.CurrentPage() -->
+            <li>
+                <a href="#" data-bind="text: $data, click: function(){ $parent.CurrentPage($data); }"></a>
+            </li>
+            <!-- /ko -->
+            <!-- /ko -->
+            <!-- ko if:HasNextPage -->
+            <li>
+                <a href="#" data-bind="click: function(){ CurrentPage(CurrentPage() + 1); }">&raquo;</a></li>
+            <!-- /ko -->
+            <!-- ko ifnot:HasNextPage -->
+            <li class="disabled">
+                <a href="#" class="disabledPage">&raquo;</a></li>
+            <!-- /ko -->
+            <!-- ko ifnot:CurrentPage() === LastPage() -->
+            <li>
+                <a href="#" data-bind="click: function(){ CurrentPage(LastPage()); }">&raquo;&raquo;</a></li>
+            <!-- /ko -->
+            <!-- ko if:CurrentPage() === LastPage() -->
+            <li class="disabled">
+                <a href="#" class="disabledPage">&raquo;&raquo;</a></li>
+            <!-- /ko -->
+        </ul>
+    </script>
+
+</body>
+</html>
