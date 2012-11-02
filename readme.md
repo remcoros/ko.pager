@@ -1,5 +1,4 @@
 # Knockout pager 
-
 A pager for use with knockout. 
 
 For now, see the example's source for how to use it. I added some comments to the code.
