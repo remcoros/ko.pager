@@ -27,7 +27,7 @@
             var self = this;
 
             // only for example, used to demonstrate setting the total item count from a service call.
-            self.SetTotalResults = ko.observable();
+            self.SetTotalResults = ko.observable(0);
 
             // holds the total item count
             self.TotalResults = ko.observable();
@@ -57,11 +57,10 @@
                     }
                 */
 
-                // setting 'total results' this should be in your result callback
-                var result = {
-                    totalItemCount: self.SetTotalResults() // in this example we grab it from the form.
-                };
-                self.TotalResults(result.totalItemCount);
+                // setting 'total results'. This should be in your result callback
+				// in this example we grab it from the form.
+				var totalItemCount = self.SetTotalResults();
+                self.TotalResults(totalItemCount);
             }
         } // /ViewModel
 
