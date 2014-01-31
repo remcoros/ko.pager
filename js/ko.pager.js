@@ -41,7 +41,13 @@
         self.LastItemIndex = ko.computed(function () {
             return Math.min(self.FirstItemIndex() + self.PageSize() - 1, self.TotalItemCount());
         });
-
+        
+        self.ThisPageCount = ko.computed(function() {
+            var mod = self.LastItemIndex() % self.PageSize();
+            if (mod > 0) return mod;
+            return self.PageSize();
+        });
+        
         self.Pages = ko.computed(function () {
             var pageCount = self.LastPage();
             var pageFrom = Math.max(1, self.CurrentPage() - self.PageSlide());
