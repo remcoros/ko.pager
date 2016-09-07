@@ -15,13 +15,19 @@
         return result;
     };
 
-    function Pager(totalItemCount) {
+    function Pager(totalItemCount, selectPageFn, context) {
         var self = this;
         self.CurrentPage = numericObservable(1);
         self.TotalItemCount = ko.computed(totalItemCount);
         self.PageSize = numericObservable(10);
         self.PageSlide = numericObservable(2);
 
+        self.selectPage = function(page) {
+            self.CurrentPage(page);
+            context = context || this;
+            if(selectPageFn)
+                selectPageFn.bind(context)();
+        };
         self.LastPage = ko.computed(function () {
             return Math.floor((self.TotalItemCount() - 1) / self.PageSize()) + 1;
         });
@@ -41,13 +47,13 @@
         self.LastItemIndex = ko.computed(function () {
             return Math.min(self.FirstItemIndex() + self.PageSize() - 1, self.TotalItemCount());
         });
-        
+
         self.ThisPageCount = ko.computed(function() {
             var mod = self.LastItemIndex() % self.PageSize();
             if (mod > 0) return mod;
             return self.PageSize();
         });
-        
+
         self.Pages = ko.computed(function () {
             var pageCount = self.LastPage();
             var pageFrom = Math.max(1, self.CurrentPage() - self.PageSlide());
@@ -63,8 +69,8 @@
         });
     }
 
-    ko.pager = function (totalItemCount) {
-        var pager = new Pager(totalItemCount);
+    ko.pager = function (totalItemCount, selectPageFn, context) {
+        var pager = new Pager(totalItemCount, selectPageFn, context);
         return ko.observable(pager);
     };
 }(ko));
